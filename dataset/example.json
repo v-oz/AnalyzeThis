@@ -1,0 +1,52 @@
+{"type": "FeatureCollection",
+    "features": [
+     {"type": "Feature", 
+         "id": 800170, 
+         "geometry": {"type": "Point", "coordinates": [37.527294, 55.83938]}, 
+         "properties": {
+            "data":{
+                "moshelper": {"uid": 12345, "name": "Penguin", "picture": "http://pakpm.mos.ru/img/ava/c4d5aad4d24a2b09ba5564fa547a46b8.jpeg" },
+                "auto_number": "k111bm197",
+                "photo": "http://pakpm.mos.ru//img/j/16032018/09/807170/small/672004aa346f1b3a3d4aa6a236d5ac0b.jpeg",
+                "status": 3,
+                "type" : 1,
+                "date": 1521181612000,
+                "updated": 1521181677000,
+                "fined_times": 10,
+                "fix_times": 10
+            }
+        }
+    },     {"type": "Feature", 
+         "id": 822452, 
+         "geometry": {"type": "Point", "coordinates": [37.527092, 55.839474]}, 
+         "properties": {
+            "data":{
+                "moshelper": {"uid": 12345, "name": "Penguin", "picture": "http://pakpm.mos.ru/img/ava/c4d5aad4d24a2b09ba5564fa547a46b8.jpeg" },
+                "auto_number": "k111bm197",
+                "photo": "http://pakpm.mos.ru//img/j/23032018/09/822436/small/b772a5adf44829443f8daa9457fc426a.jpeg",
+                "status": 3,
+                "type" : 1,
+                "date": 1521786956000,
+                "updated": 1521786997000,
+                "fined_times": 10,
+                "fix_times": 10
+            }
+        }
+    },     {"type": "Feature", 
+         "id": 986782, 
+         "geometry": {"type": "Point", "coordinates": [37.58754, 55.888927]}, 
+         "properties": {
+            "data":{
+                "moshelper": {"uid": 54321, "name": "Iron Felix", "picture": "http://pakpm.mos.ru/img/ava/c4d5aad4d24a2b09ba5564fa547a46b8.jpeg" },
+                "auto_number": "k999bm197",
+                "photo": "http://pakpm.mos.ru//img/j/25052018/17/983452/small/751daa0e4902bd865e2ae5363faff285.jpeg",
+                "status": 3,
+                "type" : 3,
+                "date": 1527258967000,
+                "updated": 1527258994000,
+                "fined_times": 1,
+                "fix_times": 1
+            }
+        }
+    }
+]}
