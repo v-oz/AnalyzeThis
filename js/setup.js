@@ -207,7 +207,7 @@ function init() {
         }
       }).done(function(data) {
         dataObj = JSON.parse(data);
-        fillPlacemarks(dataObj);
+        fillPlacemarks(dataObj, false);
         boundMap();
       });
     },
@@ -218,7 +218,6 @@ function init() {
       for (var f of features) {
         try {
           author[f.properties.data.moshelper.uid] = f.properties.data.moshelper;
-          //author[f.properties.data.moshelper.name].name = f.properties.data.moshelper;
           path = f.properties.data.photo.substring(0, f.properties.data.photo.indexOf("small"));
           f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=mh://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
           f.properties.balloonContentBody = status[f.properties.data.status].name + "</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + ((f.properties.data.type == 1) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
@@ -427,7 +426,7 @@ function init() {
 	},
 	handleDataset = function() {
       dataObj = JSON.parse(reader.result);
-      fillPlacemarks(dataObj);
+      fillPlacemarks(dataObj, false);
       boundMap();
 	}
 
