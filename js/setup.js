@@ -96,7 +96,7 @@ function init() {
         "name": "Стоянка такси",
         "color": "brown"
       },
-      10: {
+      11: {
         "name": "Стоянка для инвалидов",
         "color": "pink"
       }
