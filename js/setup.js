@@ -219,8 +219,8 @@ function init() {
         try {
           author[f.properties.data.moshelper.uid] = f.properties.data.moshelper;
           path = f.properties.data.photo.substring(0, f.properties.data.photo.indexOf("small"));
-          f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=mh://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
-          f.properties.balloonContentBody = status[f.properties.data.status].name + "</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + ((f.properties.data.type == 1) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
+          f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
+          f.properties.balloonContentBody = status[f.properties.data.status].name + "</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + (((f.properties.data.type == 1) || (f.properties.data.type == 2)) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
           f.properties.balloonContentFooter = "Автор: " + f.properties.data.moshelper.name;
           f.properties.clusterCaption = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
           f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
