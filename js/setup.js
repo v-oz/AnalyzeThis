@@ -418,17 +418,24 @@ function init() {
     },
 	inputElement = document.getElementById("dataset"),
 	reader = new FileReader(),
+	dsSource,
 	handleFiles = function() {
 	  var file, fileList = this.files;
 	  if(fileList.length == 1){
 	    file = fileList.item(0);
+		if (file.type == "application\/json") {	dsSource = "JSON"; } else {dsSource = "CSV";}
 	    reader.readAsText(file);
 		}
 	},
 	handleDataset = function() {
-      dataObj = JSON.parse(reader.result);
+      if (dsSource == "JSON") { dataObj = JSON.parse(reader.result);}
+	  else {/*  dataObj = */ CSVparse(reader.result);}
       fillPlacemarks(dataObj, false);
       boundMap();
+	},
+	CSVparse = function(content){
+		var csvObj = Papa.parse(content,{delimiter:";", header:true, fastMode:true});
+		console.log(csvObj);
 	}
 
   updateAuthorsList();
