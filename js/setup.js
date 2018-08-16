@@ -99,6 +99,10 @@ function init() {
       11: {
         "name": "Стоянка для инвалидов",
         "color": "pink"
+      },
+      100: {
+        "name": "Состав не определен",
+        "color": "black"
       }
     },
     status = {
@@ -428,14 +432,67 @@ function init() {
 		}
 	},
 	handleDataset = function() {
-      if (dsSource == "JSON") { dataObj = JSON.parse(reader.result);}
-	  else {/*  dataObj = */ CSVparse(reader.result);}
-      fillPlacemarks(dataObj, false);
+      if (dsSource == "JSON") { dataObj = JSON.parse(reader.result); fillPlacemarks(dataObj, false);}
+	  else {/*  dataObj = */ CSVparse(reader.result, false);}
       boundMap();
 	},
-	CSVparse = function(content){
+	CSVparse = function(content, clear = true){
 		var csvObj = Papa.parse(content,{delimiter:";", header:true, fastMode:true});
-		console.log(csvObj);
+		if (clear) objectManager.removeAll();
+		obj = JSON.parse('{"type": "FeatureCollection","features": []}');
+		for (var i of csvObj.data) {
+        try {
+			author["csv"] = {name:"CSV"};
+			var coord = i["Координата"].split(","), dt = i["Дата"].split(" "), d = dt[0].split("."), date = new Date(d[2]+"-"+d[1]+"-"+d[0]+" "+dt[1]),
+			getStatus = function(csv){
+				switch (csv){
+					case "Загружается": return 1; break;
+					case "Проверяется": return 2; break;
+					case "Оштрафован": return 3; break;
+					case "На рассмотрении": return 4; break;
+					case "Отклонено": return 5; break;
+					case "На модерации": return 7; break;
+					case "Некачественный материал": return 8; break;
+					case "Был зафиксирован ранее": return 9; break;
+					case "Несоответствие типа нарушения": return 10; break;
+					case "Обжалован": return 11; break;
+					default: return 6;
+				}
+			},
+			getType = function(csv){
+				switch (csv){
+					case "В зоне действия знака «Остановка запрещена»": return 1; break;
+					case "В зоне действия знака «Стоянка запрещена»": return 2; break;
+					case "Остановка запрещена (желтая линия)": return 3; break;
+					case "Контроль оплаты парковки": return 4; break;
+					case "На тротуаре": return 5; break;
+					case "На пешеходном переходе": return 6; break;
+					case "На газоне": return 7; break;
+					case "Стоянка в зоне такси": return 9; break;
+					case "Стоянка на местах для инвалидов": return 11; break;
+					default: return 100;
+				}
+			};
+			var f = {"type": "Feature", "id": i["ID"], "geometry": {"type": "Point", "coordinates": [coord[1], coord[0]]}, 
+				"properties": {
+				"data":{
+					"moshelper": {"uid": 1, "name": "CSV", "picture": "" },
+					"auto_number": i["Номер авто"],
+					"photo": "",
+					"status": getStatus(i["Статус"]),
+					"type" : getType(i["Вид нарушения"]),
+					"date": date.getTime(),
+					"updated": date.getTime(),
+					"fined_times": 0,
+					"fix_times": 0
+					}
+				}
+			};
+          obj.features.push(f);
+        } catch (e) {
+          //			console.log('[Ошибка]: ' + e.name + ":" + e.message + "\n" + e.stack);
+        }
+      }
 	}
 
   updateAuthorsList();
