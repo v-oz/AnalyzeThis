@@ -442,7 +442,7 @@ function init() {
 		obj = JSON.parse('{"type": "FeatureCollection","features": []}');
 		for (var i of csvObj.data) {
         try {
-			author["csv"] = {name:"CSV"};
+			author[1] = {"uid":1, "name":"CSV"};
 			var coord = i["Координата"].split(","), date = new Date(i["Дата"]),
 			getStatus = function(csv){
 				switch (csv){
@@ -504,6 +504,7 @@ function init() {
 			}
 		}
 		objectManager.add(JSON.stringify(obj));
+    updateAuthorsList();
 	}
 
   updateAuthorsList();
