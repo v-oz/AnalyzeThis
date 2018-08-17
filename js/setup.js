@@ -443,7 +443,7 @@ function init() {
 		for (var i of csvObj.data) {
         try {
 			author[1] = {"uid":1, "name":"CSV"};
-			var coord = i["Координата"].split(","), date = new Date(i["Дата"]),
+			var coord = i["Координата"].split(","), date = new Date(i["Дата"].replace(/\./g,"-")),
 			getStatus = function(csv){
 				switch (csv){
 					case "Загружается": return 1; break;
@@ -490,7 +490,7 @@ function init() {
 				}
 			};
 			  f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
-			  f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>" + f.properties.data.address+ "</br>" + date.toString();
+			  f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>" + f.properties.data.address+ "</br>" + date.toLocaleString();
 			  f.properties.balloonContentFooter = "Автор: " + f.properties.data.moshelper.name;
 			  f.properties.clusterCaption = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
 			  f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
