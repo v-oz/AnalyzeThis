@@ -99,6 +99,10 @@ function init() {
       11: {
         "name": "Стоянка для инвалидов",
         "color": "pink"
+      },
+      100: {
+        "name": "Состав не определен",
+        "color": "black"
       }
     },
     status = {
@@ -418,17 +422,89 @@ function init() {
     },
 	inputElement = document.getElementById("dataset"),
 	reader = new FileReader(),
+	dsSource,
 	handleFiles = function() {
 	  var file, fileList = this.files;
 	  if(fileList.length == 1){
 	    file = fileList.item(0);
+		if (file.type == "application\/json") {	dsSource = "JSON"; } else {dsSource = "CSV";}
 	    reader.readAsText(file);
 		}
 	},
 	handleDataset = function() {
-      dataObj = JSON.parse(reader.result);
-      fillPlacemarks(dataObj, false);
+      if (dsSource == "JSON") { dataObj = JSON.parse(reader.result); fillPlacemarks(dataObj, false);}
+	  else {CSVparse(reader.result, false);}
       boundMap();
+	},
+	CSVparse = function(content, clear = true){
+		var f, csvObj = Papa.parse(content,{delimiter:";", header:true, fastMode:false});
+		if (clear) objectManager.removeAll();
+		obj = JSON.parse('{"type": "FeatureCollection","features": []}');
+		for (var i of csvObj.data) {
+        try {
+			author[1] = {"uid":1, "name":"CSV"};
+			var coord = i["Координата"].split(","), date = new Date(i["Дата"].replace(/\./g,"-")),
+			getStatus = function(csv){
+				switch (csv){
+					case "Загружается": return 1; break;
+					case "Проверяется": return 2; break;
+					case "Оштрафован": return 3; break;
+					case "На рассмотрении": return 4; break;
+					case "Отклонено": return 5; break;
+					case "На модерации": return 7; break;
+					case "Некачественный материал": return 8; break;
+					case "Был зафиксирован ранее": return 9; break;
+					case "Несоответствие типа нарушения": return 10; break;
+					case "Обжалован": return 11; break;
+					default: return 6;
+				}
+			},
+			getType = function(csv){
+				switch (csv){
+					case "В зоне действия знака «Остановка запрещена»": return 1; break;
+					case "В зоне действия знака «Стоянка запрещена»": return 2; break;
+					case "Остановка запрещена (желтая линия)": return 3; break;
+					case "Контроль оплаты парковки": return 4; break;
+					case "На тротуаре": return 5; break;
+					case "На пешеходном переходе": return 6; break;
+					case "На газоне": return 7; break;
+					case "Стоянка в зоне такси": return 9; break;
+					case "Стоянка на местах для инвалидов": return 11; break;
+					default: return 100;
+				}
+			};
+			f = {"type": "Feature", "id": i["ID"], "geometry": {"type": "Point", "coordinates": [coord[1], coord[0]]}, 
+				"properties": {
+				"data":{
+					"moshelper": {"uid": 1, "name": "CSV", "picture": "" },
+					"auto_number": i["Номер авто"],
+					"photo": "",
+					"status": getStatus(i["Статус"]),
+					"type" : getType(i["Вид_нарушения"]),
+					"date": date.getTime(),
+					"updated": date.getTime(),
+					"fined_times": (getStatus(i["Статус"]) == 3)? 1:0,
+					"fix_times": 1,
+					"address": i["Адрес"]
+					}
+				}
+			};
+			  f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
+			  f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>" + f.properties.data.address+ "</br>" + date.toLocaleString();
+			  f.properties.balloonContentFooter = "Автор: " + f.properties.data.moshelper.name;
+			  f.properties.clusterCaption = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
+			  f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
+			  f.properties.iconContent = f.properties.data.auto_number.toUpperCase();
+			  f.options = {};
+			  f.options.balloonContentLayout = 'my#featureBCLayout';
+			  f.options.preset = "islands#" + ((statSelector.isSelected()) ? type[f.properties.data.type].color : status[f.properties.data.status].color) + "StretchyIcon";
+			  obj.features.push(f);
+			} catch (e) {
+          //			console.log('[Ошибка]: ' + e.name + ":" + e.message + "\n" + e.stack);
+			}
+		}
+		objectManager.add(JSON.stringify(obj));
+    updateAuthorsList();
 	}
 
   updateAuthorsList();
