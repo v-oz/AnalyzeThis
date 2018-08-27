@@ -216,7 +216,7 @@ function init() {
       });
     },
     fillPlacemarks = function(obj, clear = true) {
-      var path, ttf, features = obj.features;
+      var path, ttf, date, features = obj.features;
       if (clear) objectManager.removeAll();
       obj.features = [];
       for (var f of features) {
@@ -225,7 +225,8 @@ function init() {
           path = f.properties.data.photo.substring(0, f.properties.data.photo.indexOf("small"));
           f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
 		  ttf = (f.properties.data.updated - f.properties.data.date)/1000;
-          f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>Зафиксирован за "+ ttf +" сек.</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + (((f.properties.data.type == 1) || (f.properties.data.type == 2)) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
+		  date = new Date(f.properties.data.date);	
+          f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>Зафиксирован за "+ ttf +" сек.</br>" + date.toLocaleString() + "</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + (((f.properties.data.type == 1) || (f.properties.data.type == 2)) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
           f.properties.balloonContentFooter = "Автор: " + f.properties.data.moshelper.name;
           f.properties.clusterCaption = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
           f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
