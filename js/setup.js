@@ -25,13 +25,25 @@ function init() {
     objectManager = new ymaps.ObjectManager({
       clusterize: true,
       clusterIconLayout: 'default#pieChart',
-      gridSize: 80,
+      gridSize: 64,
       clusterDisableClickZoom: true,
       clusterOpenBalloonOnClick: true,
       clusterBalloonPanelMaxMapArea: 0,
       clusterBalloonContentLayoutWidth: 400,
       clusterBalloonItemContentLayout: 'my#featureBCLayout',
       clusterBalloonLeftColumnWidth: 150
+    }),
+	gridSizeChanger = new ymaps.control.ListBox({
+        data: {
+			image: 'img/pie-chart.svg',
+            content: 'Размер кластера',
+			title: 'Размер ячейки кластера - диаграммы'
+        },
+        items: [
+			new ymaps.control.ListBoxItem({data:{content:'64'}, options:{selectOnClick: false}}),
+            new ymaps.control.ListBoxItem({data:{content:'128'}, options:{selectOnClick: false}}),
+            new ymaps.control.ListBoxItem({data:{content:'256'}, options:{selectOnClick: false}}),
+        ]
     }),
     searchControl = mhMap.controls.get('searchControl'),
     statSelector = new ymaps.control.Button({
@@ -594,6 +606,16 @@ function init() {
   inputElement.addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
 
+  gridSizeChanger.get(0).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(0).data.get('content'));
+  });
+  gridSizeChanger.get(1).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(1).data.get('content'));
+  });
+  gridSizeChanger.get(2).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(2).data.get('content'));
+  });
+
   mhMap.geoObjects.add(objectManager);
   mhMap.controls.add(listBCfixage, {
     float: 'left',
@@ -614,6 +636,10 @@ function init() {
   mhMap.controls.add(fileOpener, {
     float: 'left',
     floatIndex: 11
+  });
+  mhMap.controls.add(gridSizeChanger,{
+	  float: 'left',
+	  floatIndex: 1
   });
 }
 });
