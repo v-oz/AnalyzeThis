@@ -40,9 +40,9 @@ function init() {
 			title: 'Размер ячейки кластера - диаграммы'
         },
         items: [
-			new ymaps.control.ListBoxItem({data:{content:'64'}, options:{selectOnClick: false}}),
-            new ymaps.control.ListBoxItem({data:{content:'128'}, options:{selectOnClick: false}}),
-            new ymaps.control.ListBoxItem({data:{content:'256'}, options:{selectOnClick: false}}),
+			new ymaps.control.ListBoxItem('64'),
+            new ymaps.control.ListBoxItem('128'),
+            new ymaps.control.ListBoxItem('256'),
         ]
     }),
     searchControl = mhMap.controls.get('searchControl'),
@@ -608,12 +608,18 @@ function init() {
 
   gridSizeChanger.get(0).events.add('click', function () {
     objectManager.options.set('gridSize', gridSizeChanger.get(0).data.get('content'));
+	gridSizeChanger.get(1).deselect();
+	gridSizeChanger.get(2).deselect();
   });
   gridSizeChanger.get(1).events.add('click', function () {
     objectManager.options.set('gridSize', gridSizeChanger.get(1).data.get('content'));
+	gridSizeChanger.get(0).deselect();
+	gridSizeChanger.get(2).deselect();
   });
   gridSizeChanger.get(2).events.add('click', function () {
     objectManager.options.set('gridSize', gridSizeChanger.get(2).data.get('content'));
+	gridSizeChanger.get(0).deselect();
+	gridSizeChanger.get(1).deselect();
   });
 
   mhMap.geoObjects.add(objectManager);
@@ -641,5 +647,6 @@ function init() {
 	  float: 'left',
 	  floatIndex: 1
   });
+  gridSizeChanger.get(0).select();
 }
 });
