@@ -25,13 +25,25 @@ function init() {
     objectManager = new ymaps.ObjectManager({
       clusterize: true,
       clusterIconLayout: 'default#pieChart',
-      gridSize: 80,
+      gridSize: 64,
       clusterDisableClickZoom: true,
       clusterOpenBalloonOnClick: true,
       clusterBalloonPanelMaxMapArea: 0,
       clusterBalloonContentLayoutWidth: 400,
       clusterBalloonItemContentLayout: 'my#featureBCLayout',
       clusterBalloonLeftColumnWidth: 150
+    }),
+	gridSizeChanger = new ymaps.control.ListBox({
+        data: {
+			image: 'img/pie-chart.svg',
+            content: 'Размер кластера',
+			title: 'Размер ячейки кластера - диаграммы'
+        },
+        items: [
+			new ymaps.control.ListBoxItem({data:{content: '64'} , options:{selectOnClick: false} }),
+            new ymaps.control.ListBoxItem({data:{content:'128'} , options:{selectOnClick: false} }),
+            new ymaps.control.ListBoxItem({data:{content:'256'} , options:{selectOnClick: false} }),
+        ]
     }),
     searchControl = mhMap.controls.get('searchControl'),
     statSelector = new ymaps.control.Button({
@@ -594,7 +606,31 @@ function init() {
   inputElement.addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
 
+  gridSizeChanger.get(0).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(0).data.get('content'));
+	if(!gridSizeChanger.get(0).isSelected())gridSizeChanger.get(0).select();
+	gridSizeChanger.get(1).deselect();
+	gridSizeChanger.get(2).deselect();
+  });
+  gridSizeChanger.get(1).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(1).data.get('content'));
+	gridSizeChanger.get(0).deselect();
+	if(!gridSizeChanger.get(1).isSelected())gridSizeChanger.get(1).select();
+	gridSizeChanger.get(2).deselect();
+  });
+  gridSizeChanger.get(2).events.add('click', function () {
+    objectManager.options.set('gridSize', gridSizeChanger.get(2).data.get('content'));
+	gridSizeChanger.get(0).deselect();
+	gridSizeChanger.get(1).deselect();
+	if(!gridSizeChanger.get(2).isSelected())gridSizeChanger.get(2).select();
+  });
+
   mhMap.geoObjects.add(objectManager);
+  mhMap.controls.add(gridSizeChanger,{
+	  float: 'left',
+	  floatIndex: 6
+  });
+  gridSizeChanger.get(0).select();
   mhMap.controls.add(listBCfixage, {
     float: 'left',
     floatIndex: 7
