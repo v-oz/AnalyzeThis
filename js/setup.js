@@ -626,6 +626,11 @@ function init() {
   });
 
   mhMap.geoObjects.add(objectManager);
+  mhMap.controls.add(gridSizeChanger,{
+	  float: 'left',
+	  floatIndex: 6
+  });
+  gridSizeChanger.get(0).select();
   mhMap.controls.add(listBCfixage, {
     float: 'left',
     floatIndex: 7
@@ -646,10 +651,5 @@ function init() {
     float: 'left',
     floatIndex: 11
   });
-  mhMap.controls.add(gridSizeChanger,{
-	  float: 'left',
-	  floatIndex: 1
-  });
-  gridSizeChanger.get(0).select();
 }
 });
