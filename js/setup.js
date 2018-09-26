@@ -3,16 +3,8 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-  var customItemContentLayout = ymaps.templateLayoutFactory.createClass(
-      '<h2 class=balloon_header>{{ properties.balloonContentHeader|raw }}</h2>' +
-      '<div class=balloon_body>' +
-      '<p class=balloon_fines>{% if properties.data.fined_times > 0 %}Штрафов: {{ properties.data.fined_times }}{% endif %} Фиксаций: {{ properties.data.fix_times }}</p>' +
-      '{{ properties.balloonContentBody|raw }}</div>' +
-      '<div class=balloon_footer>{{ properties.balloonContentFooter|raw }}</div>'
-    ),
-    customListBoxItemLayout = ymaps.templateLayoutFactory.createClass(
-      "<li><a>{{data.content}}</a></li>"
-    );
+   var customItemContentLayout = CreateCustomItemContentLayout(),
+    customListBoxItemLayout = CreateCustomListBoxItemLayout();
   ymaps.layout.storage.add('my#featureBCLayout', customItemContentLayout);
   var dataObj, dataJSON,
     mhMap = new ymaps.Map('map', {
@@ -22,199 +14,15 @@ function init() {
     }, {
       searchControlProvider: 'yandex#map'
     }),
-    objectManager = new ymaps.ObjectManager({
-      clusterize: true,
-      clusterIconLayout: 'default#pieChart',
-      gridSize: 64,
-      clusterDisableClickZoom: true,
-      clusterOpenBalloonOnClick: true,
-      clusterBalloonPanelMaxMapArea: 0,
-      clusterBalloonContentLayoutWidth: 400,
-      clusterBalloonItemContentLayout: 'my#featureBCLayout',
-      clusterBalloonLeftColumnWidth: 150
-    }),
-	gridSizeChanger = new ymaps.control.ListBox({
-        data: {
-			image: 'img/pie-chart.svg',
-            content: 'Размер кластера',
-			title: 'Размер ячейки кластера - диаграммы'
-        },
-        items: [
-			new ymaps.control.ListBoxItem({data:{content: '64'} , options:{selectOnClick: false} }),
-            new ymaps.control.ListBoxItem({data:{content:'128'} , options:{selectOnClick: false} }),
-            new ymaps.control.ListBoxItem({data:{content:'256'} , options:{selectOnClick: false} }),
-        ]
-    }),
+    objectManager = CreateObjectManager(),
+	gridSizeChanger = CreateGridSizeChanger(),
     searchControl = mhMap.controls.get('searchControl'),
-    statSelector = new ymaps.control.Button({
-      data: {
-        image: 'img/car.svg',
-        content: 'По Типу',
-        title: 'По типу нарушения или по статусу'
-      },
-      state: {
-        selected: true
-      },
-      options: {
-        maxWidth: [30, 100, 150]
-      }
-    }),
-    fileOpener = new ymaps.control.Button({
-      data: {
-        image: 'img/upload.svg',
-        content: 'Файл',
-        title: 'Отрыть набор данных'
-      },
-      options: {
-		selectOnClick: false,
-        maxWidth: [30, 100, 150]
-      }
-    }),
+    statSelector = CreateStatusTypeSelector(),
+    fileOpener = CreateFileOpenButton(),
     author = {},
-    type = {
-      1: {
-        "name": "Остановка",
-        "color": "red"
-      },
-      2: {
-        "name": "Стоянка",
-        "color": "orange"
-      },
-      3: {
-        "name": "Желтая линия",
-        "color": "yellow"
-      },
-      4: {
-        "name": "П-Парковка",
-        "color": "violet"
-      },
-      5: {
-        "name": "Тротуар",
-        "color": "night"
-      },
-      6: {
-        "name": "Переход",
-        "color": "darkBlue"
-      },
-      7: {
-        "name": "Газон",
-        "color": "green"
-      },
-      8: {
-        "name": "Велополоса",
-        "color": "black"
-      },
-      9: {
-        "name": "Стоянка такси",
-        "color": "brown"
-      },
-      11: {
-        "name": "Стоянка для инвалидов",
-        "color": "pink"
-      },
-      100: {
-        "name": "Состав не определен",
-        "color": "black"
-      }
-    },
-    status = {
-      1: {
-        "name": "Загружается",
-        "color": "gray"
-      },
-      2: {
-        "name": "Проверяется",
-        "color": "gray"
-      },
-      3: {
-        "name": "Оштрафован",
-        "color": "red"
-      },
-      4: {
-        "name": "На рассмотрении",
-        "color": "orange"
-      },
-      5: {
-        "name": "Отклонено",
-        "color": "brown"
-      },
-      6: {
-        "name": "Зарезервировано",
-        "color": "black"
-      },
-      7: {
-        "name": "На модерации",
-        "color": "olive"
-      },
-      8: {
-        "name": "Некачественный материал",
-        "color": "violet"
-      },
-      9: {
-        "name": "Был зафиксирован ранее",
-        "color": "green"
-      },
-      10: {
-        "name": "Несоответствие типа нарушения",
-        "color": "pink"
-      },
-      11: {
-        "name": "Обжалован",
-        "color": "black"
-      }
-    },
-    fixage = {
-      1: {
-        "name": "До 1 недели",
-        "from": 60000, //1000*60 минута
-        "to": 504000000 //1000*60*60*24*7 неделя
-      },
-      2: {
-        "name": "От 1 до 2 недель",
-        "from": 504000000,
-        "to": 1008000000
-      },
-      3: {
-        "name": "От 2 до 4 недель",
-        "from": 1008000000,
-        "to": 2190000000
-      },
-      4: {
-        "name": "От 1 до 2 месяцев",
-        "from": 2190000000,
-        "to": 4380000000
-      },
-      5: {
-        "name": "От 2 до 3 месяцев",
-        "from": 4380000000,
-        "to": 6570000000
-      },
-      6: {
-        "name": "От 3 до 6 месяцев",
-        "from": 6570000000,
-        "to": 13140000000
-      },
-      7: {
-        "name": "От 6 до 12 месяцев",
-        "from": 13140000000,
-        "to": 26280000000
-      },
-      8: {
-        "name": "1-2 года",
-        "from": 26280000000,
-        "to": 52560000000
-      },
-      9: {
-        "name": "2-4 года",
-        "from": 52560000000,
-        "to": 105120000000
-      },
-      10: {
-        "name": "4-24 года",
-        "from": 105120000000,
-        "to": 630720000000 // Гыы
-      },
-    },
+    type = SetArrays("type"),
+    status = SetArrays("status"),
+    fixage = SetArrays("fixage"),
     getDataSet = function(dataSetUrl) {
       $.ajax({
         url: dataSetUrl,
@@ -224,7 +32,7 @@ function init() {
       }).done(function(data) {
         dataObj = JSON.parse(data);
         fillPlacemarks(dataObj, false);
-        boundMap();
+        boundMap(mhMap, objectManager.getBounds());
       });
     },
     fillPlacemarks = function(obj, clear = true) {
@@ -254,99 +62,12 @@ function init() {
       objectManager.add(JSON.stringify(obj));
       updateAuthorsList();
     },
-    getNames = function(obj) {
-      var a = [];
-      for (var i in obj) a.push(obj[i].name);
-      return a;
-    },
-    listBItype = getNames(type)
-    .map(function(title) {
-      return new ymaps.control.ListBoxItem({
-        data: {
-          content: title,
-          color: function() {
-            for (var i in type) {
-              if (type[i].name == title) return type[i].color
-            }
-          }
-        },
-        state: {
-          selected: true
-        }
-      });
-    }),
-    listBCtype = new ymaps.control.ListBox({
-      data: {
-        image: 'img/car.svg',
-        content: 'Типы',
-        title: 'Фильтр типов нарушений'
-      },
-      items: listBItype,
-      state: {
-        expanded: false,
-        filters: listBItype.reduce(function(filters, filter) {
-          filters[filter.data.get('content')] = filter.isSelected();
-          return filters;
-        }, {})
-      }
-    }),
-    listBIstatus = getNames(status)
-    .map(function(title) {
-      return new ymaps.control.ListBoxItem({
-        data: {
-          content: title,
-          color: function() {
-            for (var i in status) {
-              if (status[i].name == title) return status[i].color
-            }
-          }
-        },
-        state: {
-          selected: true
-        }
-      });
-    }),
-    listBCstatus = new ymaps.control.ListBox({
-      data: {
-        image: 'img/tick.svg',
-        content: 'Статусы',
-        title: 'Фильтр статусов фиксаций'
-      },
-      items: listBIstatus,
-      state: {
-        expanded: false,
-        filters: listBIstatus.reduce(function(filters, filter) {
-          filters[filter.data.get('content')] = filter.isSelected();
-          return filters;
-        }, {})
-      }
-    }),
-    listBIfixage = getNames(fixage)
-    .map(function(title) {
-      return new ymaps.control.ListBoxItem({
-        data: {
-          content: title
-        },
-        state: {
-          selected: true
-        }
-      });
-    }),
-    listBCfixage = new ymaps.control.ListBox({
-      data: {
-        image: 'img/calendar.svg',
-        content: 'Возраст',
-        title: 'Возраст фиксаций'
-      },
-      items: listBIfixage,
-      state: {
-        expanded: false,
-        filters: listBIfixage.reduce(function(filters, filter) {
-          filters[filter.data.get('content')] = filter.isSelected();
-          return filters;
-        }, {})
-      }
-    }),
+    listBItype = getNames(type).map(TypeListBoxItem),
+    listBCtype = CreateTypeListBoxControl(listBItype),
+    listBIstatus = getNames(status).map(StatusListBoxItem),
+    listBCstatus = CreateTypeListBoxControl(listBIstatus),
+    listBIfixage = getNames(fixage).map(FixageListBoxItem),
+    listBCfixage = CreateFixageListBoxControl(listBIfixage),
     filterMonitorType = new ymaps.Monitor(listBCtype.state),
     filterMonitorStatus = new ymaps.Monitor(listBCstatus.state),
     filterMonitorFixage = new ymaps.Monitor(listBCfixage.state),
@@ -355,32 +76,8 @@ function init() {
     filterMonitorAuthor,
     updateAuthorsList = function() {
       mhMap.controls.remove(listBCauthor);
-      listBIauthor = getNames(author)
-        .map(function(title) {
-          return new ymaps.control.ListBoxItem({
-            data: {
-              content: title
-            },
-            state: {
-              selected: true
-            }
-          });
-        });
-      listBCauthor = new ymaps.control.ListBox({
-        data: {
-          image: 'img/group.svg',
-          content: 'Авторы',
-          title: 'Фильтр авторов фиксаций'
-        },
-        items: listBIauthor,
-        state: {
-          expanded: false,
-          filters: listBIauthor.reduce(function(filters, filter) {
-            filters[filter.data.get('content')] = filter.isSelected();
-            return filters;
-          }, {})
-        }
-      });
+      listBIauthor = getNames(author).map(AuthorListBoxItem);
+      listBCauthor = CreateAuthorListBoxControl(listBIauthor);
       listBCauthor.events.remove(['select', 'deselect']);
       listBCauthor.events.add(['select', 'deselect'], function(e) {
         var listBoxItem = e.get('target');
@@ -401,31 +98,11 @@ function init() {
         floatIndex: 1
       });
     },
-    boundMap = function() {
-      try {
-        mhMap.setBounds(objectManager.getBounds(), {
-          checkZoomRange: true,
-          duration: 500
-        }).then(function() {
-          // Действие было успешно завершено.
-        }, function(err) {
-          // Не удалось показать заданный регион
-        }, this);
-      } catch (e) {}
-    },
-    getDateRange = function(d){
-      var n = Date.now();
-      for (var i in fixage){
-        var f = n - fixage[i].from, 
-        t = n - fixage[i].to;
-        if((f > d) && (t < d)) return fixage[i].name;
-      }
-    },
     getFilterFunction = function(categories) {
       return function(obj) {
         var r = searchControl.getRequestString();
         var re = new RegExp(r, "i"),
-          fa = getDateRange(obj.properties.data.date),
+          fa = getDateRange(obj.properties.data.date, ),
           a = author[obj.properties.data.moshelper.uid].name,
           t = type[obj.properties.data.type].name,
           s = status[obj.properties.data.status].name,
@@ -447,7 +124,7 @@ function init() {
 	handleDataset = function() {
       if (dsSource == "JSON") { dataObj = JSON.parse(reader.result); fillPlacemarks(dataObj, false);}
 	  else {CSVparse(reader.result, false);}
-      boundMap();
+      boundMap(mhMap, objectManager.getBounds());
 	},
 	CSVparse = function(content, clear = true){
 		var f, csvObj = Papa.parse(content,{delimiter:";", header:true, fastMode:false});
@@ -535,7 +212,7 @@ function init() {
                                       listBCtype.state.get('filters'),
                                       listBCfixage.state.get('filters'));
       objectManager.setFilter(getFilterFunction(filters));
-      boundMap();
+      boundMap(mhMap, objectManager.getBounds());
     }
   }, this);
 
