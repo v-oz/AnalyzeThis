@@ -82,23 +82,6 @@ function (provide, ListBox, extend, augment) {
     provide(GridSizeChanger);
 });
 
-function CreateGridSizeChanger(){
-	return new ymaps.control.ListBox({
-        data: {
-			image: 'img/pie-chart.svg',
-            content: 'Размер кластера',
-			title: 'Размер ячейки кластера - диаграммы'
-        },
-        items: [
-			new ymaps.control.ListBoxItem({data:{content: '64'} , options:{selectOnClick: false} }),
-            new ymaps.control.ListBoxItem({data:{content:'128'} , options:{selectOnClick: false} }),
-            new ymaps.control.ListBoxItem({data:{content:'256'} , options:{selectOnClick: false} }),
-        ]
-    });
-}
-
-
-
 function CreateObjectManager(){
 	return new ymaps.ObjectManager({
 		clusterize: true,
