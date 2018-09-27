@@ -24,19 +24,63 @@ ymaps.modules.define('plugin.CustomItemContentLayout', ['templateLayoutFactory',
     // );
 // }
 
-function CreateObjectManager(){
-	return new ymaps.ObjectManager({
-		clusterize: true,
-		clusterIconLayout: 'default#pieChart',
-		gridSize: 64,
-		clusterDisableClickZoom: true,
-		clusterOpenBalloonOnClick: true,
-		clusterBalloonPanelMaxMapArea: 0,
-		clusterBalloonContentLayoutWidth: 400,
-		clusterBalloonItemContentLayout: 'my#featureBCLayout',
-		clusterBalloonLeftColumnWidth: 150
-	});
-}
+ymaps.modules.define('plugin.GridSizeChanger', [
+    'control.ListBox',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, ListBox, extend, augment) {
+    var GridSizeChanger = function () {
+            GridSizeChanger.superclass.constructor.call(this, {
+                data: { 			
+					image: 'img/pie-chart.svg',
+					content: 'Размер кластера',
+					title: 'Размер ячейки кластера - диаграммы'
+				},
+				items: [
+					new ymaps.control.ListBoxItem({data:{content: '64'} , options:{selectOnClick: false} }),
+					new ymaps.control.ListBoxItem({data:{content:'128'} , options:{selectOnClick: false} }),
+					new ymaps.control.ListBoxItem({data:{content:'256'} , options:{selectOnClick: false} }),
+				]
+            });
+        };
+    augment(GridSizeChanger, ListBox, {
+        setParent: function (parent) {
+            GridSizeChanger.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._mapEventListener) {
+                    this._mapEventListener = this.get(0).events.group();
+                    this._mapEventListener.add(['click'], this._onClick0, this);
+                    this._mapEventListener = this.get(1).events.group();
+                    this._mapEventListener.add(['click'], this._onClick1, this);
+                    this._mapEventListener = this.get(2).events.group();
+                    this._mapEventListener.add(['click'], this._onClick2, this);
+                }
+                this._onClick0();
+            } else if (this._mapEventListener) {this._mapEventListener.removeAll();}
+		},
+        
+		_onClick0: function () {
+			this.getMap().geoObjects.get(0).options.set('gridSize', this.get(0).data.get('content'));
+			if(!this.get(0).isSelected())this.get(0).select();
+			this.get(1).deselect();
+			this.get(2).deselect();
+		},
+		_onClick1: function () {
+			this.getMap().geoObjects.get(0).options.set('gridSize', this.get(1).data.get('content'));
+			this.get(0).deselect();
+			if(!this.get(1).isSelected())this.get(1).select();
+			this.get(2).deselect();
+		},
+		_onClick2: function () {
+			this.getMap().geoObjects.get(0).options.set('gridSize', this.get(2).data.get('content'));
+			this.get(0).deselect();
+			this.get(1).deselect();
+			if(!this.get(2).isSelected())this.get(2).select();
+		},
+    });
+    provide(GridSizeChanger);
+});
 
 function CreateGridSizeChanger(){
 	return new ymaps.control.ListBox({
@@ -51,6 +95,22 @@ function CreateGridSizeChanger(){
             new ymaps.control.ListBoxItem({data:{content:'256'} , options:{selectOnClick: false} }),
         ]
     });
+}
+
+
+
+function CreateObjectManager(){
+	return new ymaps.ObjectManager({
+		clusterize: true,
+		clusterIconLayout: 'default#pieChart',
+		gridSize: 64,
+		clusterDisableClickZoom: true,
+		clusterOpenBalloonOnClick: true,
+		clusterBalloonPanelMaxMapArea: 0,
+		clusterBalloonContentLayoutWidth: 400,
+		clusterBalloonItemContentLayout: 'my#featureBCLayout',
+		clusterBalloonLeftColumnWidth: 150
+	});
 }
 
 function CreateStatusTypeSelector(){

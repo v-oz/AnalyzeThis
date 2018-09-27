@@ -3,20 +3,25 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-	ymaps.modules.require(['plugin.CustomItemContentLayout'])
-        .spread(function (CustomItemContentLayout) {
-        });
-  
-  var dataObj, dataJSON,
+	var dataObj, dataJSON,
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
       zoom: 10,
       controls: ["rulerControl", "searchControl", "zoomControl", "geolocationControl", "fullscreenControl"]
     }, {
       searchControlProvider: 'yandex#map'
-    }),
-    objectManager = CreateObjectManager(),
-	gridSizeChanger = CreateGridSizeChanger(),
+    });
+	
+	ymaps.modules.require(['plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
+        .spread(function (GridSizeChanger, CustomItemContentLayout) {
+			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
+        },
+        function (error) {
+			console.log(error.message);
+        },this);
+  
+    var objectManager = CreateObjectManager(),
+	// gridSizeChanger = CreateGridSizeChanger(),
     searchControl = mhMap.controls.get('searchControl'),
     statSelector = CreateStatusTypeSelector(),
     fileOpener = CreateFileOpenButton(),
@@ -284,34 +289,11 @@ function init() {
   inputElement.addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
 
-  gridSizeChanger.get(0).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(0).data.get('content'));
-	if(!gridSizeChanger.get(0).isSelected())gridSizeChanger.get(0).select();
-	gridSizeChanger.get(1).deselect();
-	gridSizeChanger.get(2).deselect();
-  });
-  gridSizeChanger.get(1).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(1).data.get('content'));
-	gridSizeChanger.get(0).deselect();
-	if(!gridSizeChanger.get(1).isSelected())gridSizeChanger.get(1).select();
-	gridSizeChanger.get(2).deselect();
-  });
-  gridSizeChanger.get(2).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(2).data.get('content'));
-	gridSizeChanger.get(0).deselect();
-	gridSizeChanger.get(1).deselect();
-	if(!gridSizeChanger.get(2).isSelected())gridSizeChanger.get(2).select();
-  });
-
+  
   mhMap.geoObjects.add(objectManager);
-  mhMap.controls.add(gridSizeChanger,{
-	  float: 'left',
-	  floatIndex: 6
-  });
-  gridSizeChanger.get(0).select();
   mhMap.controls.add(listBCfixage, {
-    float: 'left',
-    floatIndex: 7
+	float: 'left',
+	floatIndex: 7
   });
   mhMap.controls.add(listBCtype, {
     float: 'left',
