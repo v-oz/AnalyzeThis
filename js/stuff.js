@@ -1,18 +1,28 @@
-function CreateCustomItemContentLayout() {
-	return ymaps.templateLayoutFactory.createClass(
+ymaps.modules.define('plugin.CustomItemContentLayout', ['templateLayoutFactory', 'layout.storage'],
+	function (provide, templateLayoutFactory,layoutStorage) {
+        var customItemContentLayoutClass = templateLayoutFactory.createClass(
 		'<h2 class=balloon_header>{{ properties.balloonContentHeader|raw }}</h2>' +
 		'<div class=balloon_body>' +
 		'<p class=balloon_fines>{% if properties.data.fined_times > 0 %}Штрафов: {{ properties.data.fined_times }}{% endif %} Фиксаций: {{ properties.data.fix_times }}</p>' +
 		'{{ properties.balloonContentBody|raw }}</div>' +
-		'<div class=balloon_footer>{{ properties.balloonContentFooter|raw }}</div>'
-	);
-};
+		'<div class=balloon_footer>{{ properties.balloonContentFooter|raw }}</div>',
+			{
+				build: function(){
+					customItemContentLayoutClass.superclass.build.call(this);
+				},
+				clear: function () {
+					customItemContentLayoutClass.superclass.clear.call(this);
+				}
+			});
+		layoutStorage.add('my#featureBCLayout', customItemContentLayoutClass);
+		provide(customItemContentLayoutClass);
+});
 
-function CreateCustomListBoxItemLayout(){
-	return ymaps.templateLayoutFactory.createClass(
-		"<li><a>{{data.content}}</a></li>"
-    );
-}
+// function CreateCustomListBoxItemLayout(){
+	// return ymaps.templateLayoutFactory.createClass(
+		// "<li><a>{{data.content}}</a></li>"
+    // );
+// }
 
 function CreateObjectManager(){
 	return new ymaps.ObjectManager({

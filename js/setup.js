@@ -3,9 +3,10 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-   var customItemContentLayout = CreateCustomItemContentLayout(),
-    customListBoxItemLayout = CreateCustomListBoxItemLayout();
-  ymaps.layout.storage.add('my#featureBCLayout', customItemContentLayout);
+	ymaps.modules.require(['plugin.CustomItemContentLayout'])
+        .spread(function (CustomItemContentLayout) {
+        });
+  
   var dataObj, dataJSON,
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
