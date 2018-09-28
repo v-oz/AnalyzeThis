@@ -165,19 +165,45 @@ function CreateObjectManager(){
 	});
 }
 
-function CreateFileOpenButton(){
-	return new ymaps.control.Button({
-      data: {
-        image: 'img/upload.svg',
-        content: 'Файл',
-        title: 'Отрыть набор данных'
-      },
-      options: {
-		selectOnClick: false,
-        maxWidth: [30, 100, 150]
-      }
+ymaps.modules.define('plugin.FileOpenButton', [
+    'control.Button',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, Button, extend, augment) {
+	var FileOpenButton = function () {
+            FileOpenButton.superclass.constructor.call(this, {
+                data: { 			
+					image: 'img/upload.svg',
+					content: 'Файл',
+					title: 'Отрыть набор данных'
+				},
+				options: {
+					selectOnClick: false,
+					maxWidth: [30, 100, 150]
+				}
+            });
+        };
+    augment(FileOpenButton, Button, {
+        setParent: function (parent) {
+            FileOpenButton.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._eventListener) {
+                    this._eventListener = this.events.group();
+					this._eventListener.removeAll();
+                    this._eventListener.add(['mouseup'], this._onClick, this);
+                }
+            } else if (this._eventListener) {this._eventListener.removeAll();}
+		},
+
+		_onClick: function (e) {
+			if (e.originalEvent.type == "mouseup"){ // trim ghost click event (stopImmediatePropagation doesn't work)
+				document.getElementById("dataset").click();
+			}
+		},
     });
-}
+    provide(FileOpenButton);
+});
 
 function SetArrays(arr){
 	switch(arr){

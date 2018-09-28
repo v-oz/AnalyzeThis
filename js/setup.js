@@ -12,11 +12,12 @@ function init() {
       searchControlProvider: 'yandex#map'
     });
 	
-	ymaps.modules.require(['plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
-        .spread(function (StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
+	ymaps.modules.require(['plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
+        .spread(function (FileOpenButton, StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
 			statSelector = new StatusTypeSelector();
 			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
 			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
+			mhMap.controls.add(new FileOpenButton(), { float: 'left', floatIndex: 11});
         },
         function (error) {
 			console.log(error.message);
@@ -24,7 +25,6 @@ function init() {
 
     var objectManager = CreateObjectManager(),
     searchControl = mhMap.controls.get('searchControl'),
-    fileOpener = CreateFileOpenButton(),
     author = {},
     type = SetArrays("type"),
     status = SetArrays("status"),
@@ -116,7 +116,6 @@ function init() {
         return categories[a] && categories[t] && categories[s] && categories[fa] && f
       }
     },
-	inputElement = document.getElementById("dataset"),
 	reader = new FileReader(),
 	dsSource,
 	handleFiles = function() {
@@ -264,10 +263,7 @@ function init() {
     objectManager.setFilter(getFilterFunction(filters));
   });
 
-  fileOpener.events.add(["click"], function(event) {
-	  inputElement.click();
-	});
-  inputElement.addEventListener("change", handleFiles, false);
+  document.getElementById("dataset").addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
 
   
@@ -283,10 +279,6 @@ function init() {
   mhMap.controls.add(listBCstatus, {
     float: 'left',
     floatIndex: 9
-  });
-  mhMap.controls.add(fileOpener, {
-    float: 'left',
-    floatIndex: 11
   });
 }
 });
