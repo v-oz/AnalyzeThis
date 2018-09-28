@@ -108,7 +108,7 @@ function init() {
       return function(obj) {
         var r = searchControl.getRequestString();
         var re = new RegExp(r, "i"),
-          fa = getDateRange(obj.properties.data.date, ),
+          fa = getDateRange(obj.properties.data.date, fixage),
           a = author[obj.properties.data.moshelper.uid].name,
           t = type[obj.properties.data.type].name,
           s = status[obj.properties.data.status].name,
