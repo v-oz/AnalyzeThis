@@ -411,7 +411,7 @@ var StatusListBoxItem = function(title) {
 	});
 }
 
-function CreateTypeListBoxControl(listBIstatus){
+function CreateStatusListBoxControl(listBIstatus){
 	return new ymaps.control.ListBox({
       data: {
         image: 'img/tick.svg',
