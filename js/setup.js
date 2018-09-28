@@ -3,7 +3,7 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-	var dataObj, dataJSON,
+	var dataObj, dataJSON, statSelector,
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
       zoom: 10,
@@ -12,18 +12,18 @@ function init() {
       searchControlProvider: 'yandex#map'
     });
 	
-	ymaps.modules.require(['plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
-        .spread(function (GridSizeChanger, CustomItemContentLayout) {
+	ymaps.modules.require(['plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
+        .spread(function (StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
+			statSelector = new StatusTypeSelector();
+			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
 			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
         },
         function (error) {
 			console.log(error.message);
         },this);
-  
+
     var objectManager = CreateObjectManager(),
-	// gridSizeChanger = CreateGridSizeChanger(),
     searchControl = mhMap.controls.get('searchControl'),
-    statSelector = CreateStatusTypeSelector(),
     fileOpener = CreateFileOpenButton(),
     author = {},
     type = SetArrays("type"),
@@ -264,25 +264,6 @@ function init() {
     objectManager.setFilter(getFilterFunction(filters));
   });
 
-  statSelector.events.add(["select", "deselect"], function(event) {
-    statSelector.data.set("content", (statSelector.isSelected()) ? "По Типу" : "По Статусу");
-    objectManager.objects.each(function(object) {
-      objectManager.objects.setObjectOptions(object.id, {
-        preset: "islands#" + ((statSelector.isSelected()) ? type[object.properties.data.type].color : status[object.properties.data.status].color) + "StretchyIcon"
-      });
-    });
-    objectManager.clusters.each(function(cluster) {
-      objectManager.clusters.setClusterOptions(cluster.id, {
-        clusterIconLayout: ''
-      });
-      objectManager.clusters.setClusterOptions(cluster.id, {
-        clusterIconLayout: 'default#pieChart'
-      });
-    });
-  }).add(["click"], function(event) {
-    statSelector.data.set("image", (statSelector.isSelected()) ? 'img/tick.svg' : 'img/car.svg');
-  });
-
   fileOpener.events.add(["click"], function(event) {
 	  inputElement.click();
 	});
@@ -302,10 +283,6 @@ function init() {
   mhMap.controls.add(listBCstatus, {
     float: 'left',
     floatIndex: 9
-  });
-  mhMap.controls.add(statSelector, {
-    float: 'left',
-    floatIndex: 10
   });
   mhMap.controls.add(fileOpener, {
     float: 'left',

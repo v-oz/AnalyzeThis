@@ -48,16 +48,16 @@ function (provide, ListBox, extend, augment) {
         setParent: function (parent) {
             GridSizeChanger.superclass.setParent.call(this, parent);
             if (parent) {
-                if (!this._mapEventListener) {
-                    this._mapEventListener = this.get(0).events.group();
-                    this._mapEventListener.add(['click'], this._onClick0, this);
-                    this._mapEventListener = this.get(1).events.group();
-                    this._mapEventListener.add(['click'], this._onClick1, this);
-                    this._mapEventListener = this.get(2).events.group();
-                    this._mapEventListener.add(['click'], this._onClick2, this);
+                if (!this._eventListener) {
+                    this._eventListener = this.get(0).events.group();
+                    this._eventListener.add(['click'], this._onClick0, this);
+                    this._eventListener = this.get(1).events.group();
+                    this._eventListener.add(['click'], this._onClick1, this);
+                    this._eventListener = this.get(2).events.group();
+                    this._eventListener.add(['click'], this._onClick2, this);
                 }
                 this._onClick0();
-            } else if (this._mapEventListener) {this._mapEventListener.removeAll();}
+            } else if (this._eventListener) {this._eventListener.removeAll();}
 		},
         
 		_onClick0: function () {
@@ -82,6 +82,75 @@ function (provide, ListBox, extend, augment) {
     provide(GridSizeChanger);
 });
 
+ymaps.modules.define('plugin.StatusTypeSelector', [
+    'control.Button',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, Button, extend, augment) {
+	var type = SetArrays("type"),
+    status = SetArrays("status"),
+	StatusTypeSelector = function () {
+            StatusTypeSelector.superclass.constructor.call(this, {
+                data: { 			
+					image: 'img/car.svg',
+					content: 'По Типу',
+					title: 'По типу нарушения или по статусу'
+				},
+				state: {
+					selected: true
+				},
+				options: {
+					maxWidth: [30, 100, 150]
+				}
+            });
+        };
+    augment(StatusTypeSelector, Button, {
+        setParent: function (parent) {
+            StatusTypeSelector.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._eventListener) {
+                    this._eventListener = this.events.group();
+                    this._eventListener.add(["select"], this._onSelect, this)
+									   .add(["deselect"], this._onDeselect, this);
+                }
+            } else if (this._eventListener) {this._eventListener.removeAll();}
+			this._onSelect();
+		},
+
+		_onSelect: function () {
+			this.data.set("content", "По Типу" );
+			this.data.set("image", 'img/car.svg' );
+			var om = this.getMap().geoObjects.get(0);
+			om.objects.each(function(object) {
+				om.getMap().geoObjects.get(0).objects.setObjectOptions(object.id, {
+					preset: "islands#" + type[object.properties.data.type].color + "StretchyIcon"
+				});
+			});
+			this.getMap().geoObjects.get(0).clusters.each(function(cluster) {
+				om.clusters.setClusterOptions(cluster.id, {clusterIconLayout: ''});
+				om.clusters.setClusterOptions(cluster.id, {clusterIconLayout: 'default#pieChart'});
+			});
+		},
+		_onDeselect: function () {
+			this.data.set("content", "По Статусу");
+			this.data.set("image", 'img/tick.svg');
+			var om = this.getMap().geoObjects.get(0);
+			om.objects.each(function(object) {
+				om.getMap().geoObjects.get(0).objects.setObjectOptions(object.id, {
+					preset: "islands#" + status[object.properties.data.status].color + "StretchyIcon"
+				});
+			});
+			this.getMap().geoObjects.get(0).clusters.each(function(cluster) {
+				om.clusters.setClusterOptions(cluster.id, {clusterIconLayout: ''});
+				om.clusters.setClusterOptions(cluster.id, {clusterIconLayout: 'default#pieChart'});
+			});
+		},
+    });
+    provide(StatusTypeSelector);
+});
+
+
 function CreateObjectManager(){
 	return new ymaps.ObjectManager({
 		clusterize: true,
@@ -94,22 +163,6 @@ function CreateObjectManager(){
 		clusterBalloonItemContentLayout: 'my#featureBCLayout',
 		clusterBalloonLeftColumnWidth: 150
 	});
-}
-
-function CreateStatusTypeSelector(){
-	return new ymaps.control.Button({
-      data: {
-        image: 'img/car.svg',
-        content: 'По Типу',
-        title: 'По типу нарушения или по статусу'
-      },
-      state: {
-        selected: true
-      },
-      options: {
-        maxWidth: [30, 100, 150]
-      }
-    });
 }
 
 function CreateFileOpenButton(){
