@@ -65,7 +65,7 @@ function init() {
     listBItype = getNames(type).map(TypeListBoxItem),
     listBCtype = CreateTypeListBoxControl(listBItype),
     listBIstatus = getNames(status).map(StatusListBoxItem),
-    listBCstatus = CreateTypeListBoxControl(listBIstatus),
+    listBCstatus = CreateStatusListBoxControl(listBIstatus),
     listBIfixage = getNames(fixage).map(FixageListBoxItem),
     listBCfixage = CreateFixageListBoxControl(listBIfixage),
     filterMonitorType = new ymaps.Monitor(listBCtype.state),
