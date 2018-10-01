@@ -6,6 +6,7 @@ function init() {
 	var dataObj, dataJSON, statSelector, 
 	listBCtype, filterMonitorType,
 	listBCstatus, filterMonitorStatus,
+	listBCfixage, filterMonitorFixage,
 	objectManager = CreateObjectManager(),
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
@@ -16,10 +17,10 @@ function init() {
     });
 	
 	ymaps.modules.require([
-		'plugin.StatusListBoxControl', 'plugin.TypeListBoxControl', 
+		'plugin.FixageListBoxControl', 'plugin.StatusListBoxControl', 'plugin.TypeListBoxControl', 
 		'plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 
 		'plugin.CustomItemContentLayout'])
-        .spread(function (StatusListBoxControl, TypeListBoxControl, 
+        .spread(function (FixageListBoxControl, StatusListBoxControl, TypeListBoxControl, 
 			FileOpenButton, StatusTypeSelector, GridSizeChanger, 
 			CustomItemContentLayout) {
 			statSelector = new StatusTypeSelector();
@@ -34,6 +35,10 @@ function init() {
 			listBCstatus = new StatusListBoxControl();
 			mhMap.controls.add(listBCstatus, { float: 'left', floatIndex: 9});
 			filterMonitorStatus = new ymaps.Monitor(listBCstatus.state);
+
+			listBCfixage = new FixageListBoxControl();
+			mhMap.controls.add(listBCfixage, { float: 'left',floatIndex: 7});
+			filterMonitorFixage = new ymaps.Monitor(listBCfixage.state);
 			
 			filterMonitorType.add('filters', function(filters) {
 				filters = ymaps.util.extend({}, filters, 
@@ -50,6 +55,14 @@ function init() {
 				objectManager.setFilter(getFilterFunction(filters));
 			});
 
+			filterMonitorFixage.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+								listBCtype.state.get('filters'), 
+								listBCauthor.state.get('filters'),
+								listBCstatus.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+			
         },
         function (error) {
 			console.log(error);
@@ -99,9 +112,6 @@ function init() {
       objectManager.add(JSON.stringify(obj));
       updateAuthorsList();
     },
-    listBIfixage = getNames(fixage).map(FixageListBoxItem),
-    listBCfixage = CreateFixageListBoxControl(listBIfixage),
-    filterMonitorFixage = new ymaps.Monitor(listBCfixage.state),
     listBIauthor,
     listBCauthor,
     filterMonitorAuthor,
@@ -246,28 +256,9 @@ function init() {
     }
   }, this);
 
-  listBCfixage.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCfixage.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCfixage.state.set('filters', filters);
-  });
-  filterMonitorFixage.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCtype.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCstatus.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
   document.getElementById("dataset").addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
-
   
   mhMap.geoObjects.add(objectManager);
-  mhMap.controls.add(listBCfixage, {
-	float: 'left',
-	floatIndex: 7
-  });
 }
 });
