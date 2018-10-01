@@ -3,7 +3,10 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-	var dataObj, dataJSON, statSelector, listBCtype, filterMonitorType, objectManager = CreateObjectManager(),
+	var dataObj, dataJSON, statSelector, 
+	listBCtype, filterMonitorType,
+	listBCstatus, filterMonitorStatus,
+	objectManager = CreateObjectManager(),
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
       zoom: 10,
@@ -12,20 +15,38 @@ function init() {
       searchControlProvider: 'yandex#map'
     });
 	
-	ymaps.modules.require(['plugin.TypeListBoxControl', 'plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
-        .spread(function (TypeListBoxControl, FileOpenButton, StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
+	ymaps.modules.require([
+		'plugin.StatusListBoxControl', 'plugin.TypeListBoxControl', 
+		'plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 
+		'plugin.CustomItemContentLayout'])
+        .spread(function (StatusListBoxControl, TypeListBoxControl, 
+			FileOpenButton, StatusTypeSelector, GridSizeChanger, 
+			CustomItemContentLayout) {
 			statSelector = new StatusTypeSelector();
 			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
 			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
 			mhMap.controls.add(new FileOpenButton(), { float: 'left', floatIndex: 11});
+			
 			listBCtype = new TypeListBoxControl();
 			mhMap.controls.add(listBCtype, {float: 'left', floatIndex: 8});
 			filterMonitorType = new ymaps.Monitor(listBCtype.state);
+			
+			listBCstatus = new StatusListBoxControl();
+			mhMap.controls.add(listBCstatus, { float: 'left', floatIndex: 9});
+			filterMonitorStatus = new ymaps.Monitor(listBCstatus.state);
+			
 			filterMonitorType.add('filters', function(filters) {
 				filters = ymaps.util.extend({}, filters, 
                                 listBCstatus.state.get('filters'), 
                                 listBCauthor.state.get('filters'),
                                 listBCfixage.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+			filterMonitorStatus.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+								listBCtype.state.get('filters'), 
+								listBCauthor.state.get('filters'),
+								listBCfixage.state.get('filters'));
 				objectManager.setFilter(getFilterFunction(filters));
 			});
 
@@ -78,11 +99,8 @@ function init() {
       objectManager.add(JSON.stringify(obj));
       updateAuthorsList();
     },
-    listBIstatus = getNames(status).map(StatusListBoxItem),
-    listBCstatus = CreateStatusListBoxControl(listBIstatus),
     listBIfixage = getNames(fixage).map(FixageListBoxItem),
     listBCfixage = CreateFixageListBoxControl(listBIfixage),
-    filterMonitorStatus = new ymaps.Monitor(listBCstatus.state),
     filterMonitorFixage = new ymaps.Monitor(listBCfixage.state),
     listBIauthor,
     listBCauthor,
@@ -228,20 +246,6 @@ function init() {
     }
   }, this);
 
-  listBCstatus.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCstatus.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCstatus.state.set('filters', filters);
-  });
-  filterMonitorStatus.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCtype.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCfixage.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
   listBCfixage.events.add(['select', 'deselect'], function(e) {
     var listBoxItem = e.get('target');
     var filters = ymaps.util.extend({}, listBCfixage.state.get('filters'));
@@ -264,10 +268,6 @@ function init() {
   mhMap.controls.add(listBCfixage, {
 	float: 'left',
 	floatIndex: 7
-  });
-  mhMap.controls.add(listBCstatus, {
-    float: 'left',
-    floatIndex: 9
   });
 }
 });

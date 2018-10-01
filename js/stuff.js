@@ -421,39 +421,65 @@ function (provide, ListBox, extend, augment) {
     provide(TypeListBoxControl);
 });
 
-var StatusListBoxItem = function(title) {
-	return new ymaps.control.ListBoxItem({
-		data: {
-			content: title,
-			color: function() {
-				for (var i in status) {
-					if (status[i].name == title) return status[i].color
+ymaps.modules.define('plugin.StatusListBoxControl', [
+    'control.ListBox',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, ListBox, extend, augment) {
+    var status = SetArrays("status"), 
+	listBIstatus = getNames(status).map(function(title) {
+		return new ymaps.control.ListBoxItem({
+			data: {
+				content: title,
+				color: function() {
+					for (var i in status) {
+						if (status[i].name == title) return status[i].color
+					}
 				}
+			},
+			state: {
+				selected: true
 			}
+		});
+	}),
+    StatusListBoxControl = function () {
+            StatusListBoxControl.superclass.constructor.call(this, {
+					data: {
+						image: 'img/tick.svg',
+						content: 'Статусы',
+						title: 'Фильтр статусов фиксаций'
+					},
+						items: listBIstatus,
+						state: {
+							expanded: false,
+						filters: listBIstatus.reduce(function(filters, filter) {
+							filters[filter.data.get('content')] = filter.isSelected();
+							return filters;
+					}, {})
+				}
+            });
+        };
+    augment(StatusListBoxControl, ListBox, {
+        setParent: function (parent) {
+            StatusListBoxControl.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._eventListener) {
+                    this._eventListener = this.events.group();
+                    this._eventListener.add(["select", "deselect"], this._onSelect, this);
+                }
+            } else if (this._eventListener) {this._eventListener.removeAll();}
 		},
-		state: {
-			selected: true
-		}
-	});
-}
-
-function CreateStatusListBoxControl(listBIstatus){
-	return new ymaps.control.ListBox({
-      data: {
-        image: 'img/tick.svg',
-        content: 'Статусы',
-        title: 'Фильтр статусов фиксаций'
-      },
-      items: listBIstatus,
-      state: {
-        expanded: false,
-        filters: listBIstatus.reduce(function(filters, filter) {
-          filters[filter.data.get('content')] = filter.isSelected();
-          return filters;
-        }, {})
-      }
-    })
-}
+        
+		_onSelect: function (e) {
+			var listBoxItem = e.get('target');
+			var filters = ymaps.util.extend({}, this.state.get('filters'));
+			filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
+			this.state.set('filters', filters);
+		},
+    });
+    provide(StatusListBoxControl);
+});
 
 var FixageListBoxItem = function(title) {
 	return new ymaps.control.ListBoxItem({
