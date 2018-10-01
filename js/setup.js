@@ -3,7 +3,7 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-	var dataObj, dataJSON, statSelector,
+	var dataObj, dataJSON, statSelector, listBCtype, filterMonitorType, objectManager = CreateObjectManager(),
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
       zoom: 10,
@@ -12,19 +12,29 @@ function init() {
       searchControlProvider: 'yandex#map'
     });
 	
-	ymaps.modules.require(['plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
-        .spread(function (FileOpenButton, StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
+	ymaps.modules.require(['plugin.TypeListBoxControl', 'plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 'plugin.CustomItemContentLayout'])
+        .spread(function (TypeListBoxControl, FileOpenButton, StatusTypeSelector, GridSizeChanger, CustomItemContentLayout) {
 			statSelector = new StatusTypeSelector();
 			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
 			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
 			mhMap.controls.add(new FileOpenButton(), { float: 'left', floatIndex: 11});
+			listBCtype = new TypeListBoxControl();
+			mhMap.controls.add(listBCtype, {float: 'left', floatIndex: 8});
+			filterMonitorType = new ymaps.Monitor(listBCtype.state);
+			filterMonitorType.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+                                listBCstatus.state.get('filters'), 
+                                listBCauthor.state.get('filters'),
+                                listBCfixage.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+
         },
         function (error) {
-			console.log(error.message);
+			console.log(error);
         },this);
 
-    var objectManager = CreateObjectManager(),
-    searchControl = mhMap.controls.get('searchControl'),
+    var searchControl = mhMap.controls.get('searchControl'),
     author = {},
     type = SetArrays("type"),
     status = SetArrays("status"),
@@ -68,13 +78,10 @@ function init() {
       objectManager.add(JSON.stringify(obj));
       updateAuthorsList();
     },
-    listBItype = getNames(type).map(TypeListBoxItem),
-    listBCtype = CreateTypeListBoxControl(listBItype),
     listBIstatus = getNames(status).map(StatusListBoxItem),
     listBCstatus = CreateStatusListBoxControl(listBIstatus),
     listBIfixage = getNames(fixage).map(FixageListBoxItem),
     listBCfixage = CreateFixageListBoxControl(listBIfixage),
-    filterMonitorType = new ymaps.Monitor(listBCtype.state),
     filterMonitorStatus = new ymaps.Monitor(listBCstatus.state),
     filterMonitorFixage = new ymaps.Monitor(listBCfixage.state),
     listBIauthor,
@@ -221,20 +228,6 @@ function init() {
     }
   }, this);
 
-  listBCtype.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCtype.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCtype.state.set('filters', filters);
-  });
-  filterMonitorType.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCstatus.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCfixage.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
   listBCstatus.events.add(['select', 'deselect'], function(e) {
     var listBoxItem = e.get('target');
     var filters = ymaps.util.extend({}, listBCstatus.state.get('filters'));
@@ -271,10 +264,6 @@ function init() {
   mhMap.controls.add(listBCfixage, {
 	float: 'left',
 	floatIndex: 7
-  });
-  mhMap.controls.add(listBCtype, {
-    float: 'left',
-    floatIndex: 8
   });
   mhMap.controls.add(listBCstatus, {
     float: 'left',

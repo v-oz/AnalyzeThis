@@ -361,39 +361,65 @@ function getNames (obj) {
 	return a;
 }
 
-var TypeListBoxItem = function(title) {
-	return new ymaps.control.ListBoxItem({
-		data: {
-			content: title,
-			color: function() {
-				for (var i in type) {
-					if (type[i].name == title) return type[i].color
+ymaps.modules.define('plugin.TypeListBoxControl', [
+    'control.ListBox',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, ListBox, extend, augment) {
+    var type = SetArrays("type"), 
+	listBItype = getNames(type).map(function(title) {
+		return new ymaps.control.ListBoxItem({
+			data: {
+				content: title,
+				color: function() {
+					for (var i in type) {
+						if (type[i].name == title) return type[i].color
+					}
+					}
+			},
+			state: {
+				selected: true
+			}
+		});
+	}),
+    TypeListBoxControl = function () {
+            TypeListBoxControl.superclass.constructor.call(this, {
+                data: { 			
+					image: 'img/car.svg',
+					content: 'Типы',
+					title: 'Фильтр типов нарушений'
+				},
+				items: listBItype,
+				state: {
+					expanded: false,
+					filters: listBItype.reduce(function(filters, filter) {
+						filters[filter.data.get('content')] = filter.isSelected();
+						return filters;
+					}, {})
 				}
-				}
+            });
+        };
+    augment(TypeListBoxControl, ListBox, {
+        setParent: function (parent) {
+            TypeListBoxControl.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._eventListener) {
+                    this._eventListener = this.events.group();
+                    this._eventListener.add(["select", "deselect"], this._onSelect, this);
+                }
+            } else if (this._eventListener) {this._eventListener.removeAll();}
 		},
-		state: {
-			selected: true
-		}
-	});
-}
-
-function CreateTypeListBoxControl(listBItype){
-	return new ymaps.control.ListBox({
-      data: {
-        image: 'img/car.svg',
-        content: 'Типы',
-        title: 'Фильтр типов нарушений'
-      },
-      items: listBItype,
-      state: {
-        expanded: false,
-        filters: listBItype.reduce(function(filters, filter) {
-          filters[filter.data.get('content')] = filter.isSelected();
-          return filters;
-        }, {})
-      }
-    })
-}
+        
+		_onSelect: function (e) {
+			var listBoxItem = e.get('target');
+			var filters = ymaps.util.extend({}, this.state.get('filters'));
+			filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
+			this.state.set('filters', filters);
+		},
+    });
+    provide(TypeListBoxControl);
+});
 
 var StatusListBoxItem = function(title) {
 	return new ymaps.control.ListBoxItem({
