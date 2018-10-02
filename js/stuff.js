@@ -14,7 +14,7 @@ ymaps.modules.define('plugin.CustomItemContentLayout', ['templateLayoutFactory',
 					customItemContentLayoutClass.superclass.clear.call(this);
 				}
 			});
-		layoutStorage.add('my#featureBCLayout', customItemContentLayoutClass);
+		layoutStorage.add('mh#featureBCLayout', customItemContentLayoutClass);
 		provide(customItemContentLayoutClass);
 });
 
@@ -160,7 +160,7 @@ function CreateObjectManager(){
 		clusterOpenBalloonOnClick: true,
 		clusterBalloonPanelMaxMapArea: 0,
 		clusterBalloonContentLayoutWidth: 400,
-		clusterBalloonItemContentLayout: 'my#featureBCLayout',
+		clusterBalloonItemContentLayout: 'mh#featureBCLayout',
 		clusterBalloonLeftColumnWidth: 150
 	});
 }
@@ -536,34 +536,59 @@ function (provide, ListBox, extend, augment) {
     provide(FixageListBoxControl);
 });
 
-var AuthorListBoxItem = function(title) {
-	return new ymaps.control.ListBoxItem({
-		data: {
-			content: title
-		},
-		state: {
-			selected: true
-		}
+ymaps.modules.define('plugin.AuthorListBoxControl', [
+    'control.ListBox',
+    'util.extend',
+    'util.augment'
+], 
+function (provide, ListBox, extend, augment) {
+    var AuthorListBoxControl = function (author) {
+		this.listBIauthor = getNames(author).map(function(title) {
+		return new ymaps.control.ListBoxItem({
+			data: {
+				content: title,
+			},
+			state: {
+				selected: true
+			}
+		});
 	});
-}
-
-function CreateAuthorListBoxControl(listBIauthor){
-	return new ymaps.control.ListBox({
-		data: {
-			image: 'img/group.svg',
-			content: 'Авторы',
-			title: 'Фильтр авторов фиксаций'
+            AuthorListBoxControl.superclass.constructor.call(this, {
+					data: {
+						image: 'img/group.svg',
+						content: 'Авторы',
+						title: 'Фильтр авторов фиксаций'
+					},
+						items: this.listBIauthor,
+						state: {
+							expanded: false,
+						filters: this.listBIauthor.reduce(function(filters, filter) {
+							filters[filter.data.get('content')] = filter.isSelected();
+							return filters;
+					}, {})
+				}
+            });
+        };
+    augment(AuthorListBoxControl, ListBox, {
+        setParent: function (parent) {
+            AuthorListBoxControl.superclass.setParent.call(this, parent);
+            if (parent) {
+                if (!this._eventListener) {
+                    this._eventListener = this.events.group();
+                    this._eventListener.add(["select", "deselect"], this._onSelect, this);
+                }
+            } else if (this._eventListener) {this._eventListener.removeAll();}
 		},
-		items: listBIauthor,
-		state: {
-			expanded: false,
-			filters: listBIauthor.reduce(function(filters, filter) {
-				filters[filter.data.get('content')] = filter.isSelected();
-				return filters;
-				}, {})
-		}
-	})
-}
+        
+		_onSelect: function (e) {
+			var listBoxItem = e.get('target');
+			var filters = ymaps.util.extend({}, this.state.get('filters'));
+			filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
+			this.state.set('filters', filters);
+		},
+    });
+    provide(AuthorListBoxControl);
+});
 
 function getDateRange (d, fixage){
 	var n = Date.now();
