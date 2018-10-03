@@ -25,9 +25,9 @@ function init() {
 			FixageListBoxControl, StatusListBoxControl, TypeListBoxControl, 
 			FileOpenButton, StatusTypeSelector, GridSizeChanger, 
 			CustomItemContentLayout) {
-			statSelector = new StatusTypeSelector();
+			statSelector = new StatusTypeSelector(objectManager);
 			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
-			mhMap.controls.add(new GridSizeChanger(),{ float: 'left', floatIndex: 6});
+			mhMap.controls.add(new GridSizeChanger(objectManager),{ float: 'left', floatIndex: 6});
 			mhMap.controls.add(new FileOpenButton(), { float: 'left', floatIndex: 11});
 			
 			listBCtype = new TypeListBoxControl();
