@@ -3,23 +3,74 @@ $(window).on('load', function() {
 ymaps.ready(init);
 
 function init() {
-   var customItemContentLayout = CreateCustomItemContentLayout(),
-    customListBoxItemLayout = CreateCustomListBoxItemLayout();
-  ymaps.layout.storage.add('my#featureBCLayout', customItemContentLayout);
-  var dataObj, dataJSON,
+	var dataObj, dataJSON, statSelector, 
+	listBCtype, filterMonitorType,
+	listBCstatus, filterMonitorStatus,
+	listBCfixage, filterMonitorFixage,
+	listBCauthor, filterMonitorAuthor, author = {}, mhStorage,
+	objectManager = CreateObjectManager(),
     mhMap = new ymaps.Map('map', {
       center: [37.64, 55.76],
       zoom: 10,
       controls: ["rulerControl", "searchControl", "zoomControl", "geolocationControl", "fullscreenControl"]
     }, {
       searchControlProvider: 'yandex#map'
-    }),
-    objectManager = CreateObjectManager(),
-	gridSizeChanger = CreateGridSizeChanger(),
-    searchControl = mhMap.controls.get('searchControl'),
-    statSelector = CreateStatusTypeSelector(),
-    fileOpener = CreateFileOpenButton(),
-    author = {},
+    });
+	
+	ymaps.modules.require([
+		'plugin.FixageListBoxControl', 'plugin.StatusListBoxControl', 'plugin.TypeListBoxControl', 
+		'plugin.FileOpenButton', 'plugin.StatusTypeSelector', 'plugin.GridSizeChanger', 
+		'plugin.CustomItemContentLayout'])
+        .spread(function (
+			FixageListBoxControl, StatusListBoxControl, TypeListBoxControl, 
+			FileOpenButton, StatusTypeSelector, GridSizeChanger, 
+			CustomItemContentLayout) {
+			statSelector = new StatusTypeSelector(objectManager);
+			mhMap.controls.add(statSelector,{ float: 'left', floatIndex: 10});
+			mhMap.controls.add(new GridSizeChanger(objectManager),{ float: 'left', floatIndex: 6});
+			mhMap.controls.add(new FileOpenButton(), { float: 'left', floatIndex: 11});
+			
+			listBCtype = new TypeListBoxControl();
+			mhMap.controls.add(listBCtype, {float: 'left', floatIndex: 8});
+			filterMonitorType = new ymaps.Monitor(listBCtype.state);
+			
+			listBCstatus = new StatusListBoxControl();
+			mhMap.controls.add(listBCstatus, { float: 'left', floatIndex: 9});
+			filterMonitorStatus = new ymaps.Monitor(listBCstatus.state);
+
+			listBCfixage = new FixageListBoxControl();
+			mhMap.controls.add(listBCfixage, { float: 'left',floatIndex: 7});
+			filterMonitorFixage = new ymaps.Monitor(listBCfixage.state);
+			
+			filterMonitorType.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+                                listBCstatus.state.get('filters'), 
+                                listBCauthor.state.get('filters'),
+                                listBCfixage.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+			filterMonitorStatus.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+								listBCtype.state.get('filters'), 
+								listBCauthor.state.get('filters'),
+								listBCfixage.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+
+			filterMonitorFixage.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+								listBCtype.state.get('filters'), 
+								listBCauthor.state.get('filters'),
+								listBCstatus.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+			
+        },
+        function (error) {
+			console.log(error);
+        },this);
+
+    var searchControl = mhMap.controls.get('searchControl'),
     type = SetArrays("type"),
     status = SetArrays("status"),
     fixage = SetArrays("fixage"),
@@ -52,52 +103,32 @@ function init() {
           f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
           f.properties.iconContent = f.properties.data.auto_number.toUpperCase();
           f.options = {};
-          f.options.balloonContentLayout = 'my#featureBCLayout';
+          f.options.balloonContentLayout = 'mh#featureBCLayout';
           f.options.preset = "islands#" + ((statSelector.isSelected()) ? type[f.properties.data.type].color : status[f.properties.data.status].color) + "StretchyIcon";
           obj.features.push(f);
         } catch (e) {
-          //			console.log('[Ошибка]: ' + e.name + ":" + e.message + "\n" + e.stack);
+			console.log(e);
         }
       }
       objectManager.add(JSON.stringify(obj));
       updateAuthorsList();
     },
-    listBItype = getNames(type).map(TypeListBoxItem),
-    listBCtype = CreateTypeListBoxControl(listBItype),
-    listBIstatus = getNames(status).map(StatusListBoxItem),
-    listBCstatus = CreateStatusListBoxControl(listBIstatus),
-    listBIfixage = getNames(fixage).map(FixageListBoxItem),
-    listBCfixage = CreateFixageListBoxControl(listBIfixage),
-    filterMonitorType = new ymaps.Monitor(listBCtype.state),
-    filterMonitorStatus = new ymaps.Monitor(listBCstatus.state),
-    filterMonitorFixage = new ymaps.Monitor(listBCfixage.state),
-    listBIauthor,
-    listBCauthor,
-    filterMonitorAuthor,
     updateAuthorsList = function() {
-      mhMap.controls.remove(listBCauthor);
-      listBIauthor = getNames(author).map(AuthorListBoxItem);
-      listBCauthor = CreateAuthorListBoxControl(listBIauthor);
-      listBCauthor.events.remove(['select', 'deselect']);
-      listBCauthor.events.add(['select', 'deselect'], function(e) {
-        var listBoxItem = e.get('target');
-        var filters = ymaps.util.extend({}, listBCauthor.state.get('filters'));
-        filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-        listBCauthor.state.set('filters', filters);
-      });
-      filterMonitorAuthor = new ymaps.Monitor(listBCauthor.state);
-      filterMonitorAuthor.add('filters', function(filters) {
-        filters = ymaps.util.extend({}, filters, 
-                                    listBCtype.state.get('filters'), 
-                                    listBCstatus.state.get('filters'), 
-                                    listBCfixage.state.get('filters'));
-        objectManager.setFilter(getFilterFunction(filters));
-      });
-      mhMap.controls.add(listBCauthor, {
-        float: 'left',
-        floatIndex: 1
-      });
-    },
+		ymaps.modules.require(['plugin.AuthorListBoxControl'])
+        .spread(function ( AuthorListBoxControl) {
+			mhMap.controls.remove(listBCauthor);
+			listBCauthor = new AuthorListBoxControl(author);
+			mhMap.controls.add(listBCauthor, { float: 'left', floatIndex: 1});
+			filterMonitorAuthor = new ymaps.Monitor(listBCauthor.state);
+			filterMonitorAuthor.add('filters', function(filters) {
+				filters = ymaps.util.extend({}, filters, 
+								listBCtype.state.get('filters'), 
+								listBCstatus.state.get('filters'), 
+								listBCfixage.state.get('filters'));
+				objectManager.setFilter(getFilterFunction(filters));
+			});
+		});
+	},
     getFilterFunction = function(categories) {
       return function(obj) {
         var r = searchControl.getRequestString();
@@ -110,7 +141,6 @@ function init() {
         return categories[a] && categories[t] && categories[s] && categories[fa] && f
       }
     },
-	inputElement = document.getElementById("dataset"),
 	reader = new FileReader(),
 	dsSource,
 	handleFiles = function() {
@@ -132,6 +162,7 @@ function init() {
 		obj = JSON.parse('{"type": "FeatureCollection","features": []}');
 		for (var i of csvObj.data) {
         try {
+		if ("Координата" in i){
 			author[1] = {"uid":1, "name":"CSV"};
 			var coord = i["Координата"].split(","), date = new Date(i["Дата"].replace(/\./g,"-")),
 			getStatus = function(csv){
@@ -186,18 +217,18 @@ function init() {
 			  f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
 			  f.properties.iconContent = f.properties.data.auto_number.toUpperCase();
 			  f.options = {};
-			  f.options.balloonContentLayout = 'my#featureBCLayout';
+			  f.options.balloonContentLayout = 'mh#featureBCLayout';
 			  f.options.preset = "islands#" + ((statSelector.isSelected()) ? type[f.properties.data.type].color : status[f.properties.data.status].color) + "StretchyIcon";
 			  obj.features.push(f);
+			}
 			} catch (e) {
-          //			console.log('[Ошибка]: ' + e.name + ":" + e.message + "\n" + e.stack);
+          		console.log(e);
 			}
 		}
 		objectManager.add(JSON.stringify(obj));
     updateAuthorsList();
 	}
 
-  updateAuthorsList();
   searchControl.events.add(['submit', 'clear'], function(e) {
     //console.log(e.originalEvent.type + ": " + searchControl.getRequestString());
     var re = /JSON:/i;
@@ -216,117 +247,9 @@ function init() {
     }
   }, this);
 
-  listBCtype.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCtype.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCtype.state.set('filters', filters);
-  });
-  filterMonitorType.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCstatus.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCfixage.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
-  listBCstatus.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCstatus.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCstatus.state.set('filters', filters);
-  });
-  filterMonitorStatus.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCtype.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCfixage.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
-  listBCfixage.events.add(['select', 'deselect'], function(e) {
-    var listBoxItem = e.get('target');
-    var filters = ymaps.util.extend({}, listBCfixage.state.get('filters'));
-    filters[listBoxItem.data.get('content')] = listBoxItem.isSelected();
-    listBCfixage.state.set('filters', filters);
-  });
-  filterMonitorFixage.add('filters', function(filters) {
-    filters = ymaps.util.extend({}, filters, 
-                                listBCtype.state.get('filters'), 
-                                listBCauthor.state.get('filters'),
-                                listBCstatus.state.get('filters'));
-    objectManager.setFilter(getFilterFunction(filters));
-  });
-
-  statSelector.events.add(["select", "deselect"], function(event) {
-    statSelector.data.set("content", (statSelector.isSelected()) ? "По Типу" : "По Статусу");
-    objectManager.objects.each(function(object) {
-      objectManager.objects.setObjectOptions(object.id, {
-        preset: "islands#" + ((statSelector.isSelected()) ? type[object.properties.data.type].color : status[object.properties.data.status].color) + "StretchyIcon"
-      });
-    });
-    objectManager.clusters.each(function(cluster) {
-      objectManager.clusters.setClusterOptions(cluster.id, {
-        clusterIconLayout: ''
-      });
-      objectManager.clusters.setClusterOptions(cluster.id, {
-        clusterIconLayout: 'default#pieChart'
-      });
-    });
-  }).add(["click"], function(event) {
-    statSelector.data.set("image", (statSelector.isSelected()) ? 'img/tick.svg' : 'img/car.svg');
-  });
-
-  fileOpener.events.add(["click"], function(event) {
-	  inputElement.click();
-	});
-  inputElement.addEventListener("change", handleFiles, false);
+  document.getElementById("dataset").addEventListener("change", handleFiles, false);
   reader.addEventListener("loadend", handleDataset, false);
-
-  gridSizeChanger.get(0).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(0).data.get('content'));
-	if(!gridSizeChanger.get(0).isSelected())gridSizeChanger.get(0).select();
-	gridSizeChanger.get(1).deselect();
-	gridSizeChanger.get(2).deselect();
-  });
-  gridSizeChanger.get(1).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(1).data.get('content'));
-	gridSizeChanger.get(0).deselect();
-	if(!gridSizeChanger.get(1).isSelected())gridSizeChanger.get(1).select();
-	gridSizeChanger.get(2).deselect();
-  });
-  gridSizeChanger.get(2).events.add('click', function () {
-    objectManager.options.set('gridSize', gridSizeChanger.get(2).data.get('content'));
-	gridSizeChanger.get(0).deselect();
-	gridSizeChanger.get(1).deselect();
-	if(!gridSizeChanger.get(2).isSelected())gridSizeChanger.get(2).select();
-  });
-
+  
   mhMap.geoObjects.add(objectManager);
-  mhMap.controls.add(gridSizeChanger,{
-	  float: 'left',
-	  floatIndex: 6
-  });
-  gridSizeChanger.get(0).select();
-  mhMap.controls.add(listBCfixage, {
-    float: 'left',
-    floatIndex: 7
-  });
-  mhMap.controls.add(listBCtype, {
-    float: 'left',
-    floatIndex: 8
-  });
-  mhMap.controls.add(listBCstatus, {
-    float: 'left',
-    floatIndex: 9
-  });
-  mhMap.controls.add(statSelector, {
-    float: 'left',
-    floatIndex: 10
-  });
-  mhMap.controls.add(fileOpener, {
-    float: 'left',
-    floatIndex: 11
-  });
 }
 });
