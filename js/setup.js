@@ -201,7 +201,7 @@ function init() {
 					"auto_number": i["Номер авто"],
 					"photo": "",
 					"status": getStatus(i["Статус"]),
-					"type" : getType(i["Вид_нарушения"]),
+					"type" : getType(i["Вид нарушения"]),
 					"date": date.getTime(),
 					"updated": date.getTime(),
 					"fined_times": (getStatus(i["Статус"]) == 3)? 1:0,
