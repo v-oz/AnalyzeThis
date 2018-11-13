@@ -164,7 +164,7 @@ function init() {
         try {
 		if ("Координата" in i){
 			author[1] = {"uid":1, "name":"CSV"};
-			var coord = i["Координата"].split(","), date = new Date(i["Дата"].replace(/\./g,"-")),
+			var coord = i["Координата"].split(","), date = new Date(i["Дата"].replace(/\./g,"-")), path,
 			getStatus = function(csv){
 				switch (csv){
 					case "Загружается": return 1; break;
@@ -199,7 +199,7 @@ function init() {
 				"data":{
 					"moshelper": {"uid": 1, "name": "CSV", "picture": "" },
 					"auto_number": i["Номер авто"],
-					"photo": "",
+					"photo": i["Фотография"],
 					"status": getStatus(i["Статус"]),
 					"type" : getType(i["Вид нарушения"]),
 					"date": date.getTime(),
@@ -210,8 +210,9 @@ function init() {
 					}
 				}
 			};
+			  path = f.properties.data.photo.substring(0, f.properties.data.photo.indexOf("full"));
 			  f.properties.balloonContentHeader = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
-			  f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>" + f.properties.data.address+ "</br>" + date.toLocaleString();
+			  f.properties.balloonContentBody = status[f.properties.data.status].name + "</br>" + f.properties.data.address+ "</br>" + date.toLocaleString() + "</br><img class='img' src=" + f.properties.data.photo + "></br><img class='img' src=" + path + "/full/number_plate.jpeg" + ">" + (((f.properties.data.type == 1) || (f.properties.data.type == 2)) ? "</br><img class='img' src=" + path + "/small/traffic_sign.jpeg" + ">" : "");
 			  f.properties.balloonContentFooter = "Автор: " + f.properties.data.moshelper.name;
 			  f.properties.clusterCaption = type[f.properties.data.type].name + ": <a href=pakpm://" + f.id + ">" + f.properties.data.auto_number.toUpperCase() + "</a>";
 			  f.properties.hintContent = type[f.properties.data.type].name + ": " + status[f.properties.data.status].name;
