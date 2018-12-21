@@ -189,6 +189,7 @@ function init() {
 					case "На тротуаре": return 5; break;
 					case "На пешеходном переходе": return 6; break;
 					case "На газоне": return 7; break;
+					case "На газоне (зимой)": return 8; break;
 					case "Стоянка в зоне такси": return 9; break;
 					case "Стоянка на местах для инвалидов": return 11; break;
 					default: return 100;

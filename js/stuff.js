@@ -445,7 +445,7 @@ function SetArrays(arr){
         "color": "green"
       },
       8: {
-        "name": "Велополоса",
+        "name": "На газоне (зимой)",//"Велополоса",
         "color": "black"
       },
       9: {
